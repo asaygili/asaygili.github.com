@@ -1,7 +1,9 @@
 name: CV Verilerini Güncelle
 
 on:
-  workflow_dispatch:         # Sadece manuel tetikleme
+  schedule:
+    - cron: '0 4 * * 1'   # Her Pazartesi 04:00 UTC (07:00 Türkiye)
+  workflow_dispatch:        # Manuel tetikleme de çalışır
 
 jobs:
   update:
@@ -17,15 +19,16 @@ jobs:
           python-version: '3.12'
 
       - name: Bağımlılıkları yükle
-        run: pip install requests
+        run: pip install scholarly
 
-      - name: Verileri çek
+      - name: Google Scholar verilerini çek
         run: python scripts/fetch_cv.py
+        continue-on-error: true   # Engelleme olursa workflow başarısız sayılmaz
 
       - name: Değişiklik varsa commit et
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data.json
-          git diff --staged --quiet || git commit -m "chore: CV verileri otomatik güncellendi $(date '+%d.%m.%Y')"
+          git diff --staged --quiet || git commit -m "chore: atıf verileri güncellendi $(date '+%d.%m.%Y')"
           git push
